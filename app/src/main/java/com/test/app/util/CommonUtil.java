@@ -1,8 +1,8 @@
-package com.app.test.testapp.util;
+package com.test.app.util;
 
 import android.os.Build;
 
-import com.app.test.testapp.helper.LogHelper;
+import com.test.app.helper.LogHelper;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

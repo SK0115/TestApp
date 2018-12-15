@@ -1,10 +1,10 @@
-package com.app.test.testapp.activity;
+package com.test.app.activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.app.test.testapp.R;
-import com.app.test.testapp.util.CommonUtil;
+import com.test.app.R;
+import com.test.app.util.CommonUtil;
 
 public class MainActivity extends AppCompatActivity {
 
