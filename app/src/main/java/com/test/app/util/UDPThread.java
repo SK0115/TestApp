@@ -13,7 +13,7 @@ import java.net.UnknownHostException;
 
 public class UDPThread extends Thread {
 
-    private static final String TAG = "UDPThread";
+    private final String TAG = "UDPThread";
 
     private String mTargetIp = "";
 
@@ -31,6 +31,7 @@ public class UDPThread extends Thread {
 
     @Override
     public synchronized void run() {
+        LogHelper.releaseLog(TAG, "UDPThread mTargetIp:" + mTargetIp);
         if (TextUtils.isEmpty(mTargetIp)) {
             return;
         }

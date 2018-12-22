@@ -24,6 +24,20 @@ public class CommonUtil {
     private static final String TAG = "CommonUtil";
 
     /**
+     * 检测对象是否为空
+     * 
+     * @param reference
+     * @param <T>
+     * @return
+     */
+    public static <T> boolean checkIsNull(T reference) {
+        if (null == reference) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 获取设备支持的cpu架构
      * 
      * @return
@@ -163,7 +177,7 @@ public class CommonUtil {
         try {
             WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             // 得到当前连接的wifi热点的信息
-            if (null != wifiManager) {
+            if (!checkIsNull(wifiManager)) {
                 WifiInfo wifiInfo = wifiManager.getConnectionInfo();
                 String netName = wifiInfo.getSSID(); // 获取被连接网络的名称
                 String netMac = wifiInfo.getBSSID(); // 获取被连接网络的mac地址
