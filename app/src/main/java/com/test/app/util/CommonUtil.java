@@ -1,13 +1,23 @@
 package com.test.app.util;
 
+import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.text.TextUtils;
 
 import com.test.app.helper.LogHelper;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+import java.util.Locale;
 
 public class CommonUtil {
 
@@ -30,7 +40,7 @@ public class CommonUtil {
             abiStr.append(abi);
             abiStr.append(',');
         }
-        LogHelper.releaseLog("getDeviceSupportAbis:" + abiStr.toString());
+        LogHelper.releaseLog(TAG, "getDeviceSupportAbis:" + abiStr.toString());
         return abiStr.toString();
     }
 
@@ -105,11 +115,186 @@ public class CommonUtil {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LogHelper.errorLog("getCpuArchitecture msg:" + e.getMessage());
+            LogHelper.errorLog(TAG, "getCpuArchitecture msg:" + e.getMessage());
         }
         for (int i = 0; i < armArchitecture.length; i++) {
-            LogHelper.releaseLog("getCpuArchitecture:" + armArchitecture[i]);
+            LogHelper.releaseLog(TAG, "getCpuArchitecture:" + armArchitecture[i]);
         }
         return armArchitecture;
+    }
+
+    /**
+     * 获取本地IP
+     * 
+     * @return
+     */
+    public static String getLocalIPAddress() {
+        String ip = "";
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+                        // Inetaddressutils.isIPv4Address(inetAddress.getHostAddress()) //API19以前可用
+                        ip = inetAddress.getHostAddress();
+                        break;
+                    }
+                }
+                if (!TextUtils.isEmpty(ip)) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            LogHelper.errorLog(TAG, "getLocalIPAddress error:" + e.toString());
+            ip = "";
+        }
+        LogHelper.releaseLog(TAG, "getLocalIPAddress ip:" + ip);
+        return ip;
+    }
+
+    /**
+     * 获取当前正在连接的wifi的信息
+     *
+     * @param context
+     * @return
+     */
+    public static WifiInfo getCurrentConnectingWIFI(Context context) {
+        try {
+            WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            // 得到当前连接的wifi热点的信息
+            if (null != wifiManager) {
+                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                String netName = wifiInfo.getSSID(); // 获取被连接网络的名称
+                String netMac = wifiInfo.getBSSID(); // 获取被连接网络的mac地址
+                String localMac = wifiInfo.getMacAddress();// 获得本机的MAC地址
+                int localIP = wifiInfo.getIpAddress();
+                int level = wifiInfo.getRssi();
+                int linkSpeed = wifiInfo.getLinkSpeed();
+                LogHelper.releaseLog(TAG, "getCurrentConnectingWIFI wifiInfo:" + wifiInfo.toString());
+                return wifiInfo;
+            }
+            return null;
+        } catch (Exception e) {
+            LogHelper.errorLog(TAG, "getCurrentConnectingWIFI Exception! message:" + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 获取网络信息
+     * 
+     * @param context
+     */
+    public static void getNetworkInfo(Context context) {
+        try {
+            WifiManager wm = null;
+            String ip = "";
+            String wifiName = "";
+            String mac = "";
+            try {
+                wm = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            } catch (Exception e) {
+                wm = null;
+                LogHelper.errorLog(TAG, "getNetworkInfo WifiManager error:" + e.toString());
+            }
+            if (null != wm && wm.isWifiEnabled()) {
+                WifiInfo wifi = wm.getConnectionInfo();
+                if (wifi.getRssi() != -200) {
+                    ip = getWifiIPAddress(wifi.getIpAddress());
+                }
+                wifiName = wifi.getSSID(); // 获取被连接网络的名称
+                mac = wifi.getBSSID(); // 获取被连接网络的mac地址
+                String str = "WIFI:" + wifiName + " WiFiIP:" + ip + " MAC:" + mac;
+                LogHelper.releaseLog(TAG, "getNetworkInfo str:" + str);
+                discover(ip);// 发送arp请求
+            }
+        } catch (Exception e) {
+            LogHelper.errorLog(TAG, "getNetworkInfo error:" + e.toString());
+        }
+    }
+
+    /**
+     * 获取wifi的ip地址
+     * 
+     * @param ipaddr
+     * @return
+     */
+    public static String getWifiIPAddress(int ipaddr) {
+        LogHelper.releaseLog(TAG, "getWifiIPAddress ipaddr:" + ipaddr);
+        String ip = "";
+        if (0 == ipaddr) {
+            return ip;
+        }
+        byte[] addressBytes = { (byte) (0xff & ipaddr), (byte) (0xff & (ipaddr >> 8)), (byte) (0xff & (ipaddr >> 16)), (byte) (0xff & (ipaddr >> 24)) };
+        try {
+            ip = InetAddress.getByAddress(addressBytes).toString();
+            if (ip.length() > 1) {
+                ip = ip.substring(1, ip.length());
+            } else {
+                ip = "";
+            }
+        } catch (Exception e) {
+            ip = "";
+            LogHelper.errorLog(TAG, "getWifiIPAddress error:" + e.toString());
+        }
+        LogHelper.releaseLog(TAG, "getWifiIPAddress ip:" + ip);
+        return ip;
+    }
+
+    /**
+     * 根据ip网段去发送arp请求
+     *
+     * @param ip
+     */
+    public static void discover(String ip) {
+        String newip = "";
+        if (!ip.equals("")) {
+            String ipseg = ip.substring(0, ip.lastIndexOf(".") + 1);
+            for (int i = 2; i < 255; i++) {
+                newip = ipseg + String.valueOf(i);
+                if (newip.equals(ip))
+                    continue;
+                Thread ut = new UDPThread(newip);
+                ut.start();
+            }
+        }
+    }
+
+    /**
+     * 读取arp表
+     */
+    public static void readArp() {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("/proc/net/arp"));
+            String line = "";
+            String ip = "";
+            String flag = "";
+            String mac = "";
+            while ((line = br.readLine()) != null) {
+                try {
+                    line = line.trim();
+                    if (line.length() < 63) {
+                        continue;
+                    }
+                    if (line.toUpperCase(Locale.US).contains("IP")) {
+                        continue;
+                    }
+                    ip = line.substring(0, 17).trim();
+                    flag = line.substring(29, 32).trim();
+                    mac = line.substring(41, 63).trim();
+                    if (mac.contains("00:00:00:00:00:00")) {
+                        continue;
+                    }
+                    LogHelper.releaseLog(TAG, "readArp: mac= " + mac + " ip= " + ip + " flag= " + flag);
+
+                } catch (Exception e) {
+                    LogHelper.errorLog(TAG, "readArp readLine error:" + e.toString());
+                }
+            }
+            br.close();
+        } catch (Exception e) {
+            LogHelper.errorLog(TAG, "readArp error:" + e.toString());
+        }
     }
 }

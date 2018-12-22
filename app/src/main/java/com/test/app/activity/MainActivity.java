@@ -14,6 +14,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         CommonUtil.getDeviceSupportAbis();
         CommonUtil.getCpuArchitecture();
+        CommonUtil.getCurrentConnectingWIFI(MainActivity.this);
+        // CommonUtil.discover(CommonUtil.getLocalIPAddress());
+        CommonUtil.getNetworkInfo(MainActivity.this);
+        CommonUtil.readArp();
     }
 
 }
