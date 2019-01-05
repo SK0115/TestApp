@@ -1,7 +1,7 @@
 package com.test.app.module.main;
 
-import android.net.wifi.WifiInfo;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -44,10 +44,10 @@ public class MainFragment extends BaseFragment implements MainContract.View {
 
     @Override
     protected void initView() {
-        if (!CommonUtil.checkIsNull(mPresenter)) {
-            WifiInfo wifiInfo = mPresenter.getConnectWifiInfo();
-            if (!CommonUtil.checkIsNull(wifiInfo)) {
-                mConnectWifiName.setText(wifiInfo.getSSID());
+        if (!CommonUtil.checkIsNull(mPresenter) && null != mActivity) {
+            String wifiSSID = CommonUtil.getCurrentConnectWIFISSID(mActivity);
+            if (!TextUtils.isEmpty(wifiSSID)) {
+                mConnectWifiName.setText(wifiSSID);
             }
         }
     }

@@ -1,9 +1,6 @@
 package com.test.app.module.main;
 
 import android.content.Context;
-import android.net.wifi.WifiInfo;
-
-import com.test.app.util.CommonUtil;
 
 public class MainPresenter implements MainContract.Presenter {
 
@@ -23,10 +20,5 @@ public class MainPresenter implements MainContract.Presenter {
 
     @Override
     public void onDetach() {
-    }
-
-    @Override
-    public WifiInfo getConnectWifiInfo() {
-        return CommonUtil.getCurrentConnectingWIFI(mContext);
     }
 }

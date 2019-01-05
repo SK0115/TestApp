@@ -46,8 +46,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="14dp"
-                android:layout_toRightOf="@+id/iv_has_connect"
-                android:orientation="vertical">
+                android:layout_toRightOf="@+id/iv_has_connect">
 
                 <TextView
                     android:id="@+id/tv_has_connect_name"

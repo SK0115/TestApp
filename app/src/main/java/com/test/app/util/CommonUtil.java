@@ -1,6 +1,7 @@
 package com.test.app.util;
 
 import android.content.Context;
+import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -193,6 +194,35 @@ public class CommonUtil {
             LogHelper.errorLog(TAG, "getCurrentConnectingWIFI Exception! message:" + e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * 获取当前正在连接的wifi的SSID
+     *
+     * @param context
+     * @return
+     */
+    public static String getCurrentConnectWIFISSID(Context context) {
+        try {
+            WifiInfo wifiInfo = getCurrentConnectingWIFI(context);
+            if (null != wifiInfo) {
+                String currentSSID = wifiInfo.getSSID();
+                SupplicantState supplicantState = wifiInfo.getSupplicantState();
+                if (!SupplicantState.COMPLETED.equals(supplicantState)) {
+                    return "";
+                }
+                if (!TextUtils.isEmpty(currentSSID) && currentSSID.length() > 2) {
+                    if (currentSSID.startsWith("\"") && currentSSID.endsWith("\"")) {
+                        currentSSID = currentSSID.substring(1, currentSSID.length() - 1);
+                    }
+                    LogHelper.releaseLog(TAG + "getCurrentConnectWIFISSID wifiName:" + currentSSID);
+                    return currentSSID;
+                }
+            }
+        } catch (Exception e) {
+            LogHelper.errorLog(TAG + "getCurrentConnectWIFISSID Exception! message:" + e.getMessage());
+        }
+        return "";
     }
 
     /**
