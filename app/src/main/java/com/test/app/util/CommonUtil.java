@@ -293,12 +293,13 @@ public class CommonUtil {
      */
     public static void discover(String ip) {
         String newip = "";
-        if (!ip.equals("")) {
+        if (!TextUtils.isEmpty(ip)) {
             String ipseg = ip.substring(0, ip.lastIndexOf(".") + 1);
             for (int i = 2; i < 255; i++) {
                 newip = ipseg + String.valueOf(i);
-                if (newip.equals(ip))
+                if (newip.equals(ip)) {
                     continue;
+                }
                 Thread ut = new UDPThread(newip);
                 ut.start();
             }
